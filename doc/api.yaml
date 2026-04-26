@@ -1,0 +1,308 @@
+openapi: 3.1.0
+
+info:
+  title: VeriKYC APIs
+  version: 1.0.0
+  description: Short description
+
+servers:
+  - url: http://localhost:8080
+    description: Local dev
+
+# ─── PATHS ───
+paths:
+  /api/v1/health:
+    get:
+      operationId: healthCheck
+      tags: [Health]
+      summary: check the health of the server
+      security: []
+      responses:
+        '200':
+          description: service is up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+
+  /api/v1/auth/register:
+    post:                          # HTTP method
+      operationId: registerUser      # camelCase, unique across all endpoints
+      tags: [Auth]              # groups endpoints in Swagger UI
+      summary: Register User
+      security: []                 # [] = public, omit = uses global auth
+
+      requestBody:
+        required: true
+        content:
+          application/json:        # or multipart/form-data
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+
+
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Bad request
+        '409':
+          description: Conflict
+
+  /api/v1/auth/login:
+    post: # HTTP method
+      operationId: loginUser      # camelCase, unique across all endpoints
+      tags: [ Auth ]              # groups endpoints in Swagger UI
+      summary: Login User
+      security: [ ]                 # [] = public, omit = uses global auth
+
+      requestBody:
+        required: true
+        content:
+          application/json: # or multipart/form-data
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+
+
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorised
+
+  /api/v1/documents/upload:
+    post:
+      operationId: uploadDocument
+      tags: [ Documents ]
+      summary: upload document
+      security:
+       - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [document]
+              properties:
+                document:
+                  type: string
+                  format: binary
+                selfie:
+                  type: string
+                  format: binary
+
+
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+
+        '422':
+          description: file corrupted
+
+        '400':
+          description: bad request
+
+        '413':
+          description: payload size exceeds limit
+
+        '401':
+          description: unauthorised
+
+  /api/v1/documents/{id}:
+    get:
+      operationId: getDocumentDetail
+      tags: [Documents]
+      summary: get document detail
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Document UUID
+
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentDetail'
+
+        '401':
+          description: unauthenticated
+
+        '403':
+          description: unauthorised access
+
+        '404':
+          description: not found
+  /api/v1/documents:
+    get:
+      operationId: getDocuments
+      security:
+        - bearerAuth: []
+      summary: get document list
+      tags: [Documents]
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageOfDocuments'
+        '401':
+          description: unauthorised
+
+
+
+
+
+# ─── SECURITY SCHEME ───
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: up
+
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:  { type: string, format: email }
+        password: { type: string, minLength: 8 }
+
+    UserResponse:
+      type: object
+      required: [id, email, role, createdAt]
+      properties:
+
+        id:
+          type: string
+          format: uuid
+        email: { type: string }
+        role: { type: string }
+        createdAt:
+          type: string
+          format: date-time
+
+    LoginRequest:
+      type: object
+      required: [ email, password ]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+
+    LoginResponse:
+      type: object
+      required: [ accessToken, tokenType, expireInSecs, user ]
+      properties:
+        accessToken: { type: string}
+        tokenType: {type: string}
+        expireInSecs: {type: integer}
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    DocumentResponse:
+      type: object
+      required: [documentId, status, createdAt]
+      properties:
+        documentId: { type: string, format: uuid}
+        status: { type: string}
+        createdAt:
+          type: string
+          format: date-time
+
+    DocumentDetail:
+      type: object
+      required: [id, status, imageUrl, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        documentType:
+          oneOf:
+            - type: string
+            - type: "null"
+        imageUrl:
+          type: string
+          format: uri
+        selfieUrl:
+          oneOf:
+            - type: string
+              format: uri
+            - type: "null"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PageOfDocuments:
+      type: object
+      required: [ content, page, size, totalElements, totalPages ]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentResponse'
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+
+
+

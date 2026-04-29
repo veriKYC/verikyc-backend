@@ -1,5 +1,7 @@
 package com.verikyc.repoverikycbackend.controller;
 
+import com.verikyc.repoverikycbackend.dto.LoginRequest;
+import com.verikyc.repoverikycbackend.dto.LoginResponse;
 import com.verikyc.repoverikycbackend.dto.RegisterRequest;
 import com.verikyc.repoverikycbackend.dto.UserResponse;
 import com.verikyc.repoverikycbackend.service.AuthService;
@@ -24,5 +26,9 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.registerUser(registerRequest.email(), registerRequest.password()));
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
+        return ResponseEntity.status(HttpStatus.OK).body(authService.userLogin(loginRequest));
+    }
 
 }

@@ -152,9 +152,6 @@ paths:
         '401':
           description: unauthenticated
 
-        '403':
-          description: unauthorised access
-
         '404':
           description: not found
   /api/v1/documents:

@@ -16,7 +16,6 @@ public class JwtKeyProvider {
 
     @Bean
     public SecretKey getJwtKey() {
-
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 }

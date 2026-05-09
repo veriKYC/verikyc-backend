@@ -1,10 +1,7 @@
 package com.verikyc.repoverikycbackend.service;
 
 import com.verikyc.repoverikycbackend.client.CvServiceClient;
-import com.verikyc.repoverikycbackend.dto.CvPredictResponse;
-import com.verikyc.repoverikycbackend.dto.DocumentDetailResponse;
-import com.verikyc.repoverikycbackend.dto.DocumentResponse;
-import com.verikyc.repoverikycbackend.dto.PageDocumentResponse;
+import com.verikyc.repoverikycbackend.dto.*;
 import com.verikyc.repoverikycbackend.enums.DocumentStatus;
 import com.verikyc.repoverikycbackend.enums.DocumentType;
 import com.verikyc.repoverikycbackend.enums.Role;
@@ -30,7 +27,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,6 +37,7 @@ public class DocumentService {
 
     private final DocumentRepository documentRepository;
     private final CvServiceClient cvServiceClient;
+    private final VerificationResultService  verificationResultService;
 
     @Value("${storage.upload.path}")
     private String uploadPath;
@@ -81,10 +78,12 @@ public class DocumentService {
 
         try{
             CvPredictResponse cvResponse = cvServiceClient.predict(documentImage);
+
             log.info("CV classification: id={}, type={}, confidence={}",
                     savedDocument.getId(), cvResponse.documentType(), cvResponse.confidence());
             savedDocument.setDocumentType(DocumentType.valueOf(cvResponse.documentType()));
             savedDocument.setStatus(DocumentStatus.PROCESSING);
+            verificationResultService.createResult(savedDocument, cvResponse);
         }
         catch (Exception e) {
             log.error("CV service failed: id={}, cause={}", savedDocument.getId(), e.getMessage());
@@ -101,7 +100,7 @@ public class DocumentService {
     public DocumentDetailResponse getDocumentById(UserEntity userEntity, UUID id) {
 
         Optional<DocumentEntity> document;
-        if(userEntity.getRole() == Role.ADMIN){
+        if(userEntity.getRole() == Role.ADMIN || userEntity.getRole() == Role.REVIEWER){
             document = documentRepository.findById(id);
         }
         else {
@@ -151,6 +150,7 @@ public class DocumentService {
         );
     }
 
+
     private Path saveFile(MultipartFile file) throws IOException {
         String originalName = file.getOriginalFilename();
         if(originalName == null){
@@ -168,4 +168,6 @@ public class DocumentService {
 
         return filePath;
     }
+
+
 }

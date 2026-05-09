@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,7 +27,8 @@ public class VerificationResultService {
 
         VerificationResultEntity result = VerificationResultEntity.builder()
                 .document(document)
-                .confidenceScores(Map.of("classification", cvResponse.confidence()))
+                .extractedFields(cvResponse.extractedFields())
+                .confidenceScores(cvResponse.confidenceScores())
                 .build();
 
         VerificationResultEntity saved = verificationResultRepository.save(result);

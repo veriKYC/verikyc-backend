@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record DocumentResponse(
-        UUID documentId,
+        UUID id,
         DocumentStatus status,
         LocalDateTime createdAt
 ) {

@@ -84,6 +84,7 @@ public class DocumentService {
             savedDocument.setDocumentType(DocumentType.valueOf(cvResponse.documentType()));
             savedDocument.setStatus(DocumentStatus.PROCESSING);
             verificationResultService.createResult(savedDocument, cvResponse);
+            savedDocument.setStatus(DocumentStatus.VERIFIED);
         }
         catch (Exception e) {
             log.error("CV service failed: id={}, cause={}", savedDocument.getId(), e.getMessage());

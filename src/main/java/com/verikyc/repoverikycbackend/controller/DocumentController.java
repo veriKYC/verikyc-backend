@@ -3,9 +3,11 @@ package com.verikyc.repoverikycbackend.controller;
 import com.verikyc.repoverikycbackend.dto.DocumentDetailResponse;
 import com.verikyc.repoverikycbackend.dto.DocumentResponse;
 import com.verikyc.repoverikycbackend.dto.PageDocumentResponse;
+import com.verikyc.repoverikycbackend.dto.VerificationResultResponse;
 import com.verikyc.repoverikycbackend.model.entity.UserEntity;
 import com.verikyc.repoverikycbackend.service.DocumentService;
 import com.verikyc.repoverikycbackend.service.UserService;
+import com.verikyc.repoverikycbackend.service.VerificationResultService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,7 @@ import java.util.UUID;
 public class DocumentController {
     private final DocumentService documentService;
     private final UserService userService;
+    private final VerificationResultService verificationResultService;
 
     @PostMapping("/upload")
     public ResponseEntity<DocumentResponse> uploadDocument(@RequestParam MultipartFile file, @RequestParam(required = false) MultipartFile selfie) throws IOException {
@@ -38,6 +41,13 @@ public class DocumentController {
         log.info("Getting document with id {}", id);
         UserEntity entity = getAuthenticatedUser();
         return ResponseEntity.status(HttpStatus.OK).body(documentService.getDocumentById(entity, id));
+    }
+
+    @GetMapping("/{id}/results")
+    public ResponseEntity<VerificationResultResponse> getVerificationResultByDocumentId(@PathVariable UUID id) {
+        log.info("Getting verification result with id {}", id);
+        UserEntity entity = getAuthenticatedUser();
+        return ResponseEntity.status(HttpStatus.OK).body(verificationResultService.getVerificationResultByDocumentId(entity, id));
     }
 
     @GetMapping

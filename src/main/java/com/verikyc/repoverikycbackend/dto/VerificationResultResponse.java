@@ -14,6 +14,7 @@ public record VerificationResultResponse(
     Float tamperScore,
     Map<String, Object> boundingBoxes,
     Map<String, Object> pipelineLog,
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt
 ) {
 }

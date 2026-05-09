@@ -4,6 +4,7 @@ import com.verikyc.repoverikycbackend.dto.CvPredictResponse;
 import com.verikyc.repoverikycbackend.dto.VerificationResultResponse;
 import com.verikyc.repoverikycbackend.enums.Role;
 import com.verikyc.repoverikycbackend.exception.DocumentNotFoundException;
+import com.verikyc.repoverikycbackend.exception.ResourceNotFoundException;
 import com.verikyc.repoverikycbackend.model.entity.DocumentEntity;
 import com.verikyc.repoverikycbackend.model.entity.UserEntity;
 import com.verikyc.repoverikycbackend.model.entity.VerificationResultEntity;
@@ -41,7 +42,7 @@ public class VerificationResultService {
         Optional<VerificationResultEntity> verificationResultEntity = verificationResultRepository.findByDocumentId(id);
         if(verificationResultEntity.isEmpty()){
             log.warn("Verification result not found: id={}", id);
-            throw new DocumentNotFoundException("Verification result not found");
+            throw new ResourceNotFoundException("Verification result not found");
         }
         VerificationResultEntity resultEntity = verificationResultEntity.get();
         if(!resultEntity.getDocument().getUser().getId().equals(entity.getId()) && entity.getRole()== Role.USER){
@@ -58,9 +59,8 @@ public class VerificationResultService {
                 resultEntity.getTamperScore(),
                 resultEntity.getBoundingBoxes(),
                 resultEntity.getPipelineLog(),
-                resultEntity.getCreatedAt()
+                resultEntity.getCreatedAt(),
+                resultEntity.getUpdatedAt()
         );
     }
-
-
 }

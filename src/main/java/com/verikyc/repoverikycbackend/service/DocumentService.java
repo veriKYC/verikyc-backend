@@ -1,5 +1,8 @@
 package com.verikyc.repoverikycbackend.service;
 
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
 import com.verikyc.repoverikycbackend.client.CvServiceClient;
 import com.verikyc.repoverikycbackend.dto.*;
 import com.verikyc.repoverikycbackend.enums.DocumentStatus;
@@ -39,8 +42,12 @@ public class DocumentService {
     private final CvServiceClient cvServiceClient;
     private final VerificationResultService  verificationResultService;
 
-    @Value("${storage.upload.path}")
-    private String uploadPath;
+//    @Value("${storage.upload.path}")
+//    private String uploadPath;
+
+    @Value("${gcs.bucket.name}")
+    private String bucketName;
+    private final Storage storage;
 
     public DocumentResponse uploadDocument(MultipartFile documentImage, UserEntity userEntity, MultipartFile selfieImage) throws IOException {
         if(documentImage==null || documentImage.isEmpty()){
@@ -153,21 +160,27 @@ public class DocumentService {
 
 
     private Path saveFile(MultipartFile file) throws IOException {
-        String originalName = file.getOriginalFilename();
-        if(originalName == null){
-            throw new InvalidDocumentException("Document image name is empty");
-        }
-        String extension = originalName.substring(originalName.lastIndexOf("."));
-
-        String fileName = UUID.randomUUID()+extension;
-
-        Path filePath = Paths.get(uploadPath,fileName);
-        Files.createDirectories(filePath.getParent());
-        file.transferTo(filePath);
-
-        log.info("File saved: {}", filePath);
-
-        return filePath;
+//        String originalName = file.getOriginalFilename();
+//        if(originalName == null){
+//            throw new InvalidDocumentException("Document image name is empty");
+//        }
+//        String extension = originalName.substring(originalName.lastIndexOf("."));
+//
+//        String fileName = UUID.randomUUID()+extension;
+//
+//        Path filePath = Paths.get(uploadPath,fileName);
+//        Files.createDirectories(filePath.getParent());
+//        file.transferTo(filePath);
+//
+//        log.info("File saved: {}", filePath);
+//
+//        return filePath;
+        String ext = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+        String objectName = UUID.randomUUID() + ext;
+        BlobId blobId = BlobId.of(bucketName, objectName);
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(file.getContentType()).build();
+        storage.createFrom(blobInfo, file.getInputStream());
+        return "gs://" + bucketName + "/" + objectName
     }
 
 

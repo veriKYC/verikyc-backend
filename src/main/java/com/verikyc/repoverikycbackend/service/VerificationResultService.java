@@ -29,6 +29,7 @@ public class VerificationResultService {
                 .document(document)
                 .extractedFields(cvResponse.extractedFields())
                 .confidenceScores(cvResponse.confidenceScores())
+                .fieldValidations(cvResponse.fieldValidations())
                 .build();
 
         VerificationResultEntity saved = verificationResultRepository.save(result);
@@ -59,6 +60,7 @@ public class VerificationResultService {
                 resultEntity.getTamperScore(),
                 resultEntity.getBoundingBoxes(),
                 resultEntity.getPipelineLog(),
+                resultEntity.getFieldValidations(),
                 resultEntity.getCreatedAt(),
                 resultEntity.getUpdatedAt()
         );

@@ -8,6 +8,8 @@ public record CvPredictResponse(
         @JsonProperty("document_type") String documentType,
         float confidence,
         @JsonProperty("extracted_fields") Map<String, Object> extractedFields,
-        @JsonProperty("confidence_scores") Map<String, Object> confidenceScores
+        @JsonProperty("confidence_scores") Map<String, Object> confidenceScores,
+        @JsonProperty("is_valid") boolean isValid,
+        @JsonProperty("field_validations") Map<String, Object> fieldValidations
 ) {
 }

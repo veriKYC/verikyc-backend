@@ -55,6 +55,10 @@ public class VerificationResultEntity {
     @Column(columnDefinition = "jsonb", name = "pipeline_log")
     private Map<String, Object> pipelineLog;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb", name = "field_validations")
+    private Map<String, Object> fieldValidations;
+
     @Column(name = "created_at")
     @CreationTimestamp
     private LocalDateTime createdAt;

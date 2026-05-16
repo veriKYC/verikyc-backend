@@ -84,7 +84,7 @@ public class DocumentService {
             savedDocument.setDocumentType(DocumentType.valueOf(cvResponse.documentType()));
             savedDocument.setStatus(DocumentStatus.PROCESSING);
             verificationResultService.createResult(savedDocument, cvResponse);
-            savedDocument.setStatus(DocumentStatus.VERIFIED);
+            savedDocument.setStatus(cvResponse.isValid() ?  DocumentStatus.VERIFIED : DocumentStatus.FAILED);
         }
         catch (Exception e) {
             log.error("CV service failed: id={}, cause={}", savedDocument.getId(), e.getMessage());
@@ -165,6 +165,4 @@ public class DocumentService {
         log.info("File uploaded to GCS: gs://{}/{}", bucketName, objectName);
         return "gs://" + bucketName + "/" + objectName;
     }
-
-
 }

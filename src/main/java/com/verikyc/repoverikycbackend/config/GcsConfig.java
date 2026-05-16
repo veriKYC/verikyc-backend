@@ -2,7 +2,6 @@ package com.verikyc.repoverikycbackend.config;
 
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-import io.grpc.Context;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

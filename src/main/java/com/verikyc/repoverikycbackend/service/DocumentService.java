@@ -26,9 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -41,9 +38,6 @@ public class DocumentService {
     private final DocumentRepository documentRepository;
     private final CvServiceClient cvServiceClient;
     private final VerificationResultService  verificationResultService;
-
-//    @Value("${storage.upload.path}")
-//    private String uploadPath;
 
     @Value("${gcs.bucket.name}")
     private String bucketName;
@@ -66,17 +60,16 @@ public class DocumentService {
             throw new FileSizeLimitExceededException("Image size is too large");
         }
 
-        Path filePath = saveFile(documentImage);
+        String imageUrl = saveFile(documentImage);
 
         DocumentEntity document = DocumentEntity.builder()
                 .user(userEntity)
-                .imageUrl(filePath.toString())
+                .imageUrl(imageUrl)
                 .status(DocumentStatus.QUEUED)
                 .build();
 
         if(isSelfie){
-            filePath = saveFile(selfieImage);
-            document.setSelfieUrl(filePath.toString());
+            document.setSelfieUrl(saveFile(selfieImage));
         }
 
         DocumentEntity savedDocument = documentRepository.save(document);
@@ -159,28 +152,18 @@ public class DocumentService {
     }
 
 
-    private Path saveFile(MultipartFile file) throws IOException {
-//        String originalName = file.getOriginalFilename();
-//        if(originalName == null){
-//            throw new InvalidDocumentException("Document image name is empty");
-//        }
-//        String extension = originalName.substring(originalName.lastIndexOf("."));
-//
-//        String fileName = UUID.randomUUID()+extension;
-//
-//        Path filePath = Paths.get(uploadPath,fileName);
-//        Files.createDirectories(filePath.getParent());
-//        file.transferTo(filePath);
-//
-//        log.info("File saved: {}", filePath);
-//
-//        return filePath;
-        String ext = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+    private String saveFile(MultipartFile file) throws IOException {
+        String originalName = file.getOriginalFilename();
+        if (originalName == null) {
+            throw new InvalidDocumentException("Document image name is empty");
+        }
+        String ext = originalName.substring(originalName.lastIndexOf("."));
         String objectName = UUID.randomUUID() + ext;
         BlobId blobId = BlobId.of(bucketName, objectName);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(file.getContentType()).build();
         storage.createFrom(blobInfo, file.getInputStream());
-        return "gs://" + bucketName + "/" + objectName
+        log.info("File uploaded to GCS: gs://{}/{}", bucketName, objectName);
+        return "gs://" + bucketName + "/" + objectName;
     }
 
 
